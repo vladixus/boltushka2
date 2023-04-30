@@ -23,14 +23,14 @@
 ***
 ## Insomina tests
 
-1. ### Registration <img src="./gitimages/Register.png">
-2. ### Confirm Email<img src="./gitimages/Confirm.png">
-3. ### Login<img src="./gitimages/Login.png">
-4. ### Reset Password<img src="./gitimages/ResetPassword.png">
-5. ### Update Profile<img src="./gitimages/Update.png">
-6. ### Post / Get Templates<img src="./gitimages/PostTemp.png"><img src="./gitimages/GetTemp.png">
-7. ### Post / Get Folders<img src="./gitimages/PostFolder.png"><img src="./gitimages/GetFolders.png">
-8. ### Get Library cards<img src="./gitimages/GetLibrary.png">
-9. ### Adding cards to templates from Library<img src="./gitimages/AddFromLibrary.png">
-10. ### Upload own cards<img src="./gitimages/Upload.png">
-11.  ### Delete own cards<img src="./gitimages/Delete.png">
+1. ## Registration <img src="./gitimages/Register.png">
+2. ## Confirm Email<img src="./gitimages/Confirm.png">
+3. ## Login<img src="./gitimages/Login.png">
+4. ## Reset Password<img src="./gitimages/ResetPassword.png">
+5. ## Update Profile<img src="./gitimages/Update.png">
+6. ## Post / Get Templates<img src="./gitimages/PostTemp.png"><img src="./gitimages/GetTemp.png">
+7. ## Post / Get Folders<img src="./gitimages/PostFolder.png"><img src="./gitimages/GetFolders.png">
+8. ## Get Library cards<img src="./gitimages/GetLibrary.png">
+9. ## Adding cards to templates from Library<img src="./gitimages/AddFromLibrary.png">
+10. ## Upload own cards<img src="./gitimages/Upload.png">
+11.  ## Delete own cards<img src="./gitimages/Delete.png">
