@@ -1,7 +1,7 @@
 ## RESTful API Web App for get's and post's arasaac cards  📒📗📕
 ***
 ## Technologies 💻
-***
+
 - ## Golang
 - ## Gin Framework
 - ## Viper Configurator
