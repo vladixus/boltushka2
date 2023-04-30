@@ -17,6 +17,7 @@ import (
 	"time"
 )
 
+//middleware авторизация
 func AuthMiddleware(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
@@ -72,19 +73,17 @@ func DownloadTemplate(c *gin.Context) {
 		return
 	}
 
-	// Retrieve all images and sounds associated with the template ID and user ID
-	// You can use the JOIN clause to join the images, sounds, and cardtemplate tables together
 	files, folders2 := database.DownTempl(c, templateID, userID)
 
-	// Set the headers for the response
+	// устанавливаем хэдер для ответа
 	c.Header("Content-Type", "application/json")
 
-	// Return the file URLs and IDs as a JSON response
+	// возвращяем через gin контекст ответ JSON
 	c.JSON(http.StatusOK, gin.H{"files": files})
 	c.JSON(http.StatusOK, gin.H{"folders": folders2})
 }
 
-// SendConfirmationEmail sends a confirmation email to the specified email address with the confirmation link
+// Отправка на почту письма с восстановлением пароля (нужно заменить будет ссылку на окно подтверждения с фронта!!!)
 func SendConfirmationEmail(email, token string) error {
 	from := viper.GetString("mail.email")        // your email address
 	password := viper.GetString("mail.password") // your email password
@@ -395,7 +394,7 @@ func LibrAdd(c *gin.Context) {
 	nameSound := filepath.Base(data.SoundLink)
 	nameImg := filepath.Base(data.ImageLink)
 
-	database.LibraryAdd(nameSound, nameImg)
+	database.LibraryAdd(c, nameSound, nameImg)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Изображение со звуком успешно загружены"})
 }

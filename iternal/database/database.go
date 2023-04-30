@@ -363,7 +363,7 @@ func Refreshing(userID int) (c *gin.Context, tokenString string) {
 	return nil, tokenString
 }
 
-func LibraryAdd(nameSound, nameImg string) (c *gin.Context) {
+func LibraryAdd(c *gin.Context, nameSound, nameImg string) {
 	var data struct {
 		NameSound  string `json:"name_sound"`
 		NameImg    string `json:"name_img"`
@@ -390,7 +390,6 @@ func LibraryAdd(nameSound, nameImg string) (c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка вставки в таблицу карточки шаблона БД"})
 		return
 	}
-	return nil
 }
 
 func Del(id int64) (c *gin.Context) {
