@@ -9,17 +9,17 @@
 - ## JWT authentication
 ***
 ## Tasks:
-- [x] ## Registration
-- [x] ## Confirm Email
-- [x] ## Login
-- [x] ## Reset Password
-- [x] ## Update Profile
-- [x] ## Post / Get Templates
-- [x] ## Post / Get Folders
-- [x] ## Get Library cards
-- [x] ## Adding cards to templates from Library
-- [x] ## Upload own cards
-- [x] ## Delete own cards
+- [x]  Registration
+- [x]  Confirm Email
+- [x]  Login
+- [x]  Reset Password
+- [x]  Update Profile
+- [x]  Post / Get Templates
+- [x]  Post / Get Folders
+- [x]  Get Library cards
+- [x]  Adding cards to templates from Library
+- [x]  Upload own cards
+- [x]  Delete own cards
 ***
 ## Insomina tests
 
