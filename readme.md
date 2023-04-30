@@ -2,11 +2,11 @@
 ***
 ## Technologies 💻
 
-- ## Golang
-- ## Gin Framework
-- ## Viper Configurator
-- ## PostgreSQL
-- ## JWT authentication
+-  Golang
+-  Gin Framework
+-  Viper Configurator
+-  PostgreSQL
+-  JWT authentication
 ***
 ## Tasks:
 - [x]  Registration
