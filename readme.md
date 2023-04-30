@@ -1,14 +1,13 @@
 ## RESTful API Web App for get's and post's arasaac cards  📒📗📕
 ***
-##Technologies 💻
+## Technologies 💻
 ***
-- ##Golang
-- ##Gin Framework
-- ##Viper Configurator
-- ##PostgreSQL
-- ##JWT authentication
+- ## Golang
+- ## Gin Framework
+- ## Viper Configurator
+- ## PostgreSQL
+- ## JWT authentication
 ***
-##
 ## Tasks:
 - [x] ## Registration
 - [x] ## Confirm Email
@@ -22,7 +21,7 @@
 - [x] ## Upload own cards
 - [x] ## Delete own cards
 ***
-##Insomina tests
+## Insomina tests
 
 1. ### Registration <img src="./gitimages/Register.png">
 2. ### Confirm Email<img src="./gitimages/Confirm.png">
