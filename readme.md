@@ -26,7 +26,7 @@
 - download [PostgresSQL](https://www.postgresql.org/download/)
 - create in package *iternal* folder *config* and add file *config.yaml*
 ```
-- server:
+server:
   jwt_secret: "<TYPE_YOR_SECRET>"
   port: "8080"
 db:
@@ -38,7 +38,7 @@ db:
 mail:
   email: "<YOUR_SMTP_GMAIL>"
   password: "<YOUR_SMTP_PASSWORD_AUTHENTICATION>"
-  
+  ```
 ***
 ## Insomina tests
 
