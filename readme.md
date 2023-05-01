@@ -21,6 +21,9 @@
 - [x]  Upload own cards
 - [x]  Delete own cards
 ***
+## How to start
+- download all modules from 'go.mod' in terminal 'go get -u <GIT_LINK>'
+***
 ## Insomina tests
 
 1. ## Registration <img src="./gitimages/Register.png">
