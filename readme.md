@@ -24,8 +24,8 @@
 ## How to start
 - download all modules from 'go.mod' in terminal `go get -u <GIT_LINK>`
 - download [PostgresSQL](https://www.postgresql.org/download/)
-- add in package *iternal* folder *config* and create file *config.yaml*
-- 
+- create in package *iternal* folder *config* and add file *config.yaml*
+- ```Это блок кода
 ***
 ## Insomina tests
 
