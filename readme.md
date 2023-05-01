@@ -25,7 +25,19 @@
 - download all modules from 'go.mod' in terminal `go get -u <GIT_LINK>`
 - download [PostgresSQL](https://www.postgresql.org/download/)
 - create in package *iternal* folder *config* and add file *config.yaml*
-- ```Это блок кода
+Weite
+- ```server:
+  jwt_secret: "<TYPE_YOR_SECRET>"
+  port: "8080"
+db:
+  user: "<NAME_OF_USER>"
+  password: "<DB_PASSWORD>"
+  host: "localhost"
+  port: "5432"
+  dbname: "<DB_NAME>"
+mail:
+  email: "<YOUR_SMTP_GMAIL>"
+  password: "<YOUR_SMTP_PASSWORD_AUTHENTICATION>"
 ***
 ## Insomina tests
 
