@@ -24,7 +24,9 @@
 ## How to start
 - download all modules from 'go.mod' in terminal `go get -u <GIT_LINK>`
 - download [PostgresSQL](https://www.postgresql.org/download/)
+- Make Gmail 2-step verification to get `SMTP_PASSWORD`. Create a service in the passwords and applications of your Google account, specifying the 'mail' and device application: 'other'
 - create in package *iternal* folder *config* and add file *config.yaml*
+- config.yaml:
 ```
 server:
   jwt_secret: "<TYPE_YOR_SECRET>"
