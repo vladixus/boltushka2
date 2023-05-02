@@ -50,24 +50,44 @@ mail:
 <img src="./gitimages/Register.png">
 </details>   
 2.  Confirm Email
+<details open>
 <img src="./gitimages/Confirm.png">
+</details>  
 3.  Login
+<details open>
 <img src="./gitimages/Login.png">
+</details> 
 4.  Reset Password
+<details open>
 <img src="./gitimages/ResetPassword.png">
+</details> 
 5.  Update Profile
+<details open>
 <img src="./gitimages/Update.png">
+</details> 
 6.  Post / Get Templates
+<details open>
 <img src="./gitimages/PostTemp.png">
 <img src="./gitimages/GetTemp.png">
+</details> 
 7.  Post / Get Folders
+<details open>
 <img src="./gitimages/PostFolder.png">
 <img src="./gitimages/GetFolders.png">
+</details> 
 8.  Get Library cards
+<details open>
 <img src="./gitimages/GetLibrary.png">
+</details> 
 9.  Adding cards to templates from Library
+<details open>
 <img src="./gitimages/AddFromLibrary.png">
+</details> 
 10.  Upload own cards
+<details open>
 <img src="./gitimages/Upload.png">
+</details> 
 11.   Delete own cards
+<details open>
 <img src="./gitimages/Delete.png">
+</details> 
