@@ -44,7 +44,6 @@ mail:
   ```
 ***
 ## Insomina tests
-
 1.  Registration
 <details>
 <img src="./gitimages/Register.png">
