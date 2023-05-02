@@ -45,8 +45,10 @@ mail:
 ***
 ## Insomina tests
 
-1.  Registration 
+1.  Registration
+<details open>
 <img src="./gitimages/Register.png">
+</details>   
 2.  Confirm Email
 <img src="./gitimages/Confirm.png">
 3.  Login
