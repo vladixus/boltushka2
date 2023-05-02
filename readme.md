@@ -22,11 +22,11 @@
 - [x]  Delete own cards
 ***
 ## How to start
-- Download all modules from 'go.mod' in terminal `go get -u <GIT_LINK>`
-- Download [PostgresSQL](https://www.postgresql.org/download/)
-- Make Gmail 2-step verification to get `SMTP_PASSWORD` or `go get .`
-- Create a service in the passwords and applications of your Google account, specifying the 'mail' and device application: 'other'
-- Create in package *iternal* folder *config* and add file *config.yaml*
+- Download all modules from 'go.mod' in terminal `go get -u <GIT_LINK>` or `go get .`
+- Download [PostgresSQL](https://www.postgresql.org/download/).
+- Make Gmail 2-step verification to get `SMTP_PASSWORD`.
+- Create a service in the passwords and applications of your Google account, specifying the 'mail' and device application: 'other'.
+- Create in package *iternal* folder *config* and add file *config.yaml*.
 
 ```
 server:
