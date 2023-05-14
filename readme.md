@@ -54,7 +54,7 @@ mail:
 </details>  
 3.  Login
 <details>
-<img src="./gitimages/Login.png">
+<img src="./gitimages/Login2.png">
 </details> 
 4.  Reset Password
 <details>
