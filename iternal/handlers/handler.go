@@ -8,8 +8,8 @@ import (
 	"github.com/spf13/viper"
 	"golang.org/x/crypto/bcrypt"
 	"log"
-	"myapp2/iternal/database"
-	"myapp2/iternal/model"
+	"myapp3/iternal/database"
+	"myapp3/iternal/model"
 	"net/http"
 	"net/smtp"
 	"path/filepath"
@@ -21,17 +21,17 @@ import (
 func AuthMiddleware(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authorization header missing"})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Отсутствует header авторизации"})
 		return
 	}
-	// Verify the JWT token
+	// Проверка JWT токена
 	tokenString := authHeader[7:]
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Check the signing method
+		// Метод проверки подписи
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		// Get the secret key from the config file
+		// Берем секретный ключ от токена с конфига
 		secretKey := []byte(viper.GetString("server.jwt_secret"))
 		return secretKey, nil
 	})
@@ -40,18 +40,18 @@ func AuthMiddleware(c *gin.Context) {
 		return
 	}
 	if !token.Valid {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "невалидный token"})
 		return
 	}
-	// Set the user ID in the context
+	// Установка id пользователя в контекст
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token claims"})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "недействительные заявки на токен"})
 		return
 	}
 	userID, ok := claims["id"].(float64)
 	if !ok {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid user ID"})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "неверный ID пользователя"})
 		return
 	}
 	c.Set("id", int64(userID))
@@ -59,34 +59,38 @@ func AuthMiddleware(c *gin.Context) {
 }
 
 func DownloadTemplate(c *gin.Context) {
-	// Get template ID from request
+	// Получение id из запроса
 	templateID, err := strconv.ParseInt(c.Param("template_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid template ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "неверный идентификатор шаблона"})
 		return
 	}
 
-	// Get user ID from request
+	// Получение id из запроса
 	userID, ok := c.Get("id")
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID not found in context"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "ID пользователя не найдено из контекста движка gin"})
 		return
 	}
 
-	files, folders2 := database.DownTempl(c, templateID, userID)
+	files, folders, err := database.DownTempl(c, templateID, userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	// устанавливаем хэдер для ответа
 	c.Header("Content-Type", "application/json")
 
 	// возвращяем через gin контекст ответ JSON
 	c.JSON(http.StatusOK, gin.H{"files": files})
-	c.JSON(http.StatusOK, gin.H{"folders": folders2})
+	c.JSON(http.StatusOK, gin.H{"folders": folders})
 }
 
 // Отправка на почту письма с восстановлением пароля (нужно заменить будет ссылку на окно подтверждения с фронта!!!)
 func SendConfirmationEmail(email, token string) error {
-	from := viper.GetString("mail.email")        // your email address
-	password := viper.GetString("mail.password") // your email password
+	from := viper.GetString("mail.email")        // ваша почта
+	password := viper.GetString("mail.password") // ваш пароль от этой почты
 
 	msg := "От: " + from + "\n" +
 		"Кому: " + email + "\n" +
@@ -104,12 +108,9 @@ func SendConfirmationEmail(email, token string) error {
 	return nil
 }
 
-///////////////////////////
-
-// sendResetLinkEmail sends the password reset link to the user's email address
+// sendResetLinkEmail отправляет ссылку для сброса пароля на адрес электронной почты пользователя.
 func SendResetLinkEmail(email, link string) error {
 	// TODO: Implement email sending logic using a third-party email service or package
-	// Example using SMTP package:
 	auth := smtp.PlainAuth("", viper.GetString("mail.email"), viper.GetString("mail.password"), "smtp.gmail.com")
 	to := []string{email}
 	msg := []byte("To: " + email + "\r\n" +
@@ -123,35 +124,35 @@ func SendResetLinkEmail(email, link string) error {
 	return nil
 }
 
-// POST /forgot-password
-// Send a password reset link to the user's email
+// Отправить ссылку для сброса пароля на электронную почту пользователя
 func ForgotPassword(c *gin.Context) {
-	// Get email from the request body
+	// Получить электронную почту из тела запроса
 	var email model.Email
 	if err := c.ShouldBindJSON(&email); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Check if the email exists in the database
+	// Проверка, существует ли электронная почта в БД
 	var user model.User
-
-	resetToken, user := database.ForgPass(c, user, email)
-
-	// Send the password reset link to the user's email
+	resetToken, user, err := database.ForgPass(c, email)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	// Отправить ссылку для сброса пароля на электронную почту пользователя
 	resetLink := fmt.Sprintf("http://localhost:8080/reset-password?token=%s", resetToken)
 	if err := SendResetLinkEmail(user.Email, resetLink); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error sending reset link"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка отправки ссылки на почту"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset link sent to your email"})
+	c.JSON(http.StatusOK, gin.H{"message": "Ссылка на изменение пароля отправлена на вашу почту"})
 }
 
-// POST /reset-password
-// Reset the user's password with the new password
+// Сброс пароля пользователя с новым паролем
 func ResetPassword(c *gin.Context) {
-	// Get the reset token from the URL and new password from the request body
+	// Получите токен сброса из URL-адреса и новый пароль из тела запроса.
 	resetToken := c.Query("token")
 	var resetData model.ResetData
 	if err := c.ShouldBindJSON(&resetData); err != nil {
@@ -161,16 +162,40 @@ func ResetPassword(c *gin.Context) {
 
 	// Check if the reset token is valid
 	var user model.User
-	database.ResPass(user, resetData, resetToken)
-	c.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
+	err := database.ResPass(c, user, resetData, resetToken)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Пароль успешно сменен"})
 }
 
-/////////////////////////
+// Изменение пароля
+func ChangePassword(c *gin.Context) {
+	// Получите данных.
+	var resetData model.ResetData
+	if err := c.ShouldBindJSON(&resetData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Обновить данные в БД
+	err := database.ChangPass(c, resetData)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Пароль успешно сменен"})
+}
 
 func GetLibrary(c *gin.Context) {
 	// Получите все пары файлов из базы данных
 
-	_, pairs := database.GetLibr()
+	err, pairs := database.GetLibr(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err})
+		return
+	}
 
 	// Верните массив пар файлов в формате JSON
 	c.JSON(http.StatusOK, gin.H{
@@ -182,44 +207,44 @@ func Register(c *gin.Context) {
 	var user model.User
 	err := c.ShouldBindJSON(&user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusNotAcceptable, gin.H{"error": err.Error()})
 		return
 	}
 	// Check for email uniqueness
 	err = database.CheckMail(user)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusConflict, gin.H{"error": err.Error()})
 		return
 	}
 
-	// check password length
+	// Проверка длины пароля
 	if len(user.Passwords) < 8 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Пароль должен быть больше 8 символов"})
 		return
 	}
 
-	// hash password
+	// Хэш-пароль
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Passwords), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error hashing password"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка хэширование пароля"})
 		return
 	}
 
-	// Generate a random confirmation token
+	// Создать случайный токен подтверждения
 	token, err := database.GenerateToken()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating confirmation token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка генерации токена подтверждения"})
 		return
 	}
 
-	// Insert user and confirmation token into database
+	//Вставить пользователя и токен подтверждения в базу данных
 	err = database.CreateUser(user, hashedPassword, token)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Send confirmation email to user
+	// Отправить письмо с подтверждением пользователю
 	err = SendConfirmationEmail(user.Email, token)
 	if err != nil {
 		log.Fatal(err)
@@ -234,28 +259,47 @@ func Register(c *gin.Context) {
 func Confirm(c *gin.Context) {
 	token := c.Query("token")
 
-	// Find user with matching confirmation token
-	// Mark user as confirmed
-	database.ConfirmMail(token)
+	// Найти пользователя с соответствующим токеном подтверждения
+	// Отметить пользователя как подтвержденного
+	err := database.ConfirmMail(token)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Thank you for confirming your email"})
+	c.JSON(http.StatusOK, gin.H{"message": "Спасибо за подтверждение регистрации"})
+}
+
+func Profile(c *gin.Context) {
+	var user model.Profile
+
+	user, err := database.Profile(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Status(http.StatusOK)
+	c.JSON(http.StatusOK, gin.H{"User": user})
 }
 
 func Update(c *gin.Context) {
-	// Extract user ID from URL parameter
 	id := c.MustGet("id").(int64)
 
-	// Bind request body to a User object
 	var user model.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	database.UpdUser(user, id)
+	err := database.UpdUser(c, user, id)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.Status(http.StatusOK)
-	c.JSON(http.StatusOK, gin.H{"message": "User profile updated successfully"})
+	c.JSON(http.StatusOK, gin.H{"message": "Ппофиль пользователя обновлен"})
 }
 
 func Login(c *gin.Context) {
@@ -273,7 +317,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Generate access token
+	// Генерация access token
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":   id,
 		"name": fioUser,
@@ -285,17 +329,16 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// Generate refresh token
+	// Генерацифя refresh token
 	refreshToken, err := database.SaveRefreshToken(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Ошибка сохранения токена"})
 		return
 	}
 
-	// Set refresh token in cookie
+	// Установка рефреш токена в куки
 	c.SetCookie("refresh_token", refreshToken, int(time.Hour*24*7), "/", "", false, true)
 
-	// Return access token and success message
 	c.JSON(http.StatusOK, gin.H{
 		"access_token": accessTokenString,
 		"message":      "User logged in",
@@ -305,14 +348,14 @@ func Login(c *gin.Context) {
 func Refresh(c *gin.Context) {
 	refreshToken, err := c.Cookie("refresh_token")
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token not found"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Refresh token не найден"})
 		return
 	}
 
 	// Get user ID from refresh token
 	userID, err := database.GetRefreshTokenUserID(refreshToken)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid refresh token"})
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Неверный refresh token"})
 		return
 	}
 
@@ -322,7 +365,7 @@ func Refresh(c *gin.Context) {
 	// Set the new access token in the response cookie
 	c.SetCookie("access_token", tokenString, 3600, "/", "", false, true)
 
-	c.JSON(http.StatusOK, gin.H{"message": "Access token refreshed"})
+	c.JSON(http.StatusOK, gin.H{"message": "Access token обновлен"})
 }
 
 func Upload(c *gin.Context) {
@@ -367,22 +410,21 @@ func Upload(c *gin.Context) {
 		return
 	}
 
-	database.UploadCard(c, template, soundFilename, imageFilename)
+	err = database.UploadCard(c, template, soundFilename, imageFilename)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Изображение с звук успешно загружены"})
 }
 
 func LibrAdd(c *gin.Context) {
 	// Parse JSON payload
-	var data struct {
-		NameSound  string `json:"name_sound"`
-		NameImg    string `json:"name_img"`
-		SoundLink  string `json:"sound_link"`
-		ImageLink  string `json:"image_link"`
-		TemplateID int64  `json:"template_id"`
-	}
-	if err := c.BindJSON(&data); err != nil {
+	var data model.Data
+	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Ошибка парсинга JSON"})
+		fmt.Println(err)
 		return
 	}
 
@@ -391,10 +433,14 @@ func LibrAdd(c *gin.Context) {
 	//	imageExt := filepath.Ext(data.ImageLink)
 
 	// Set name_sound and name_img
-	nameSound := filepath.Base(data.SoundLink)
-	nameImg := filepath.Base(data.ImageLink)
+	data.NameSound = filepath.Base(data.SoundLink)
+	data.NameImg = filepath.Base(data.ImageLink)
 
-	database.LibraryAdd(c, nameSound, nameImg)
+	err := database.LibraryAdd(c, data)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Изображение со звуком успешно загружены"})
 }
@@ -403,24 +449,30 @@ func Delete(c *gin.Context) {
 	// Get ID from request
 	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID"})
 		return
 	}
 
-	// Delete image and sound from storage
-	database.Del(id)
-
-	c.JSON(http.StatusOK, gin.H{"message": "Image and sound deleted successfully"})
+	// Удаление из БД
+	err = database.Del(c, id)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Изображение и звук удалены успешно"})
 }
 
 func GetTemplates(c *gin.Context) {
 
-	templates := database.GetTemp(c)
-
+	templates, err := database.GetTemp(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{"templates": templates})
 }
 
-func PostTempaltes(c *gin.Context) {
+func PostTemplates(c *gin.Context) {
 	var template model.Template
 	err := c.ShouldBindJSON(&template)
 	if err != nil {
@@ -428,34 +480,39 @@ func PostTempaltes(c *gin.Context) {
 		return
 	}
 
-	database.PostTempl(template)
+	err = database.PostTempl(template, c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Ошибка создания шаблона пользователя"})
+		return
+	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "template has been added"})
+	c.JSON(http.StatusOK, gin.H{"message": "Шаблон добавлен успешно"})
 	//	c.JSON(http.StatusOK, gin.H{"Row": row})
 }
 
 func GetFolders(c *gin.Context) {
 	templateID, err := strconv.ParseInt(c.Param("template_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid template ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID шаблона"})
 		return
 	}
 
-	// Retrieve all images and sounds associated with the template ID
-	// You can use the JOIN clause to join the images, sounds, and cardtemplate tables together
-	_, files := database.GetFold(templateID)
+	files, err := database.GetFold(c, templateID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	// Set the headers for the response
 	c.Header("Content-Type", "application/json")
 
-	// Return the file URLs and IDs as a JSON response
 	c.JSON(http.StatusOK, gin.H{"files": files})
 }
 
 func PostFolders(c *gin.Context) {
 	templateID, err := strconv.ParseInt(c.Param("template_id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid template ID"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Неверный ID шаблона"})
 		return
 	}
 
@@ -466,7 +523,31 @@ func PostFolders(c *gin.Context) {
 		return
 	}
 
-	database.PostFold(templateID, folder)
+	err = database.PostFold(c, templateID, folder)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"folder": "Папка загружена"})
+}
 
-	c.JSON(http.StatusOK, gin.H{"folder": "Folder uploaded"})
+func Logout(c *gin.Context) {
+	userID, err := c.MustGet("id").(int64)
+	if err != false {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Неверный refresh token"})
+		return
+	}
+	// После получения ID пользователя, можно удалить токен обновления из базы данных или установить его срок действия на прошедшую дату
+
+	// Удаляем токен обновления из базы данных
+	err2 := database.DeleteRefreshToken(c, userID)
+	if err2 != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Ошибка удаления токена обновления"})
+		return
+	}
+
+	// Удаляем куки с токеном обновления
+	c.SetCookie("refresh_token", "", -1, "/", "", false, true)
+
+	c.JSON(http.StatusOK, gin.H{"message": "Успешный выход из аккаунта"})
 }
