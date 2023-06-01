@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
-	"myapp2/iternal/handlers"
+	"myapp3/iternal/handlers"
 )
 
 func main() {
@@ -29,39 +29,40 @@ func main() {
 	r.POST("/forgot-password", handlers.ForgotPassword) //ready
 	//восстановить пароль, после получения ссылки на мыло
 	r.POST("/reset-password", handlers.ResetPassword) //ready
+	//Заменить пароль
+	auth.POST("/change-password", handlers.ChangePassword) //ready
 	//получить данные о карточках из дефолтной билоетки
 	r.GET("/library", handlers.GetLibrary) //ready
-
 	// регистрация юзера
 	r.POST("/register", handlers.Register) //ready
 	//подтверждение почты
 	r.GET("/confirm", handlers.Confirm) //ready
 	//обновить инфу профиля
 	auth.PUT("/profile/update", handlers.Update) //ready
+	//получить инфу профиля
+	auth.GET("/profile", handlers.Profile) //ready
 	//вход
 	r.POST("/login", handlers.Login) //ready
 	//обновить куки токен юзера
 	r.POST("/refresh_token", handlers.Refresh) //ready
-
 	// загрузкить личные карточки в шаблон юзера
 	auth.POST("/upload", handlers.Upload) //ready
 	//добавить в дефолтную библиотеку изображения и звуки
-	auth.POST("/libradd", handlers.LibrAdd)
+	auth.POST("/libradd", handlers.LibrAdd) //ready
 	//удаление личный карточек
 	auth.DELETE("/delete/:id", handlers.Delete) //ready
 	//получение карточек по шаблону
 	auth.GET("/templates/:template_id/download", handlers.DownloadTemplate) //ready
-
 	//получение шаблонов юзера
 	auth.GET("/templates", handlers.GetTemplates) //ready
-
 	//Создать шаблон юзера
-	auth.POST("/template", handlers.PostTempaltes)
-
+	auth.POST("/template", handlers.PostTemplates)
 	// узнать какие папки есть в шаблоне
 	auth.GET("/folders/:template_id", handlers.GetFolders) //ready
 	// создать папку в шаблоне
 	auth.POST("/folder/:template_id", handlers.PostFolders)
+	//выход
+	auth.POST("/logout", handlers.Logout)
 
 	r.Run()
 }
