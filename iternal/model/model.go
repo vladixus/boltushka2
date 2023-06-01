@@ -12,12 +12,27 @@ type Email struct {
 	Email string `json:"email" binding:"required,email"`
 }
 
+type Session struct {
+	ID     int64     `json:"id"`
+	EnterT time.Time `json:"enterT"`
+	ExitT  time.Time `json:"exitT"`
+	userID string    `json:"user_id"`
+}
+
+type Profile struct {
+	FioUser string `json:"fio_user"`
+	Age     int    `json:"age"`
+	Gender  string `json:"gender"`
+	Email   string `json:"email"`
+}
+
 type Data struct {
 	NameSound  string `json:"name_sound"`
 	NameImg    string `json:"name_img"`
 	SoundLink  string `json:"sound_link"`
 	ImageLink  string `json:"image_link"`
 	TemplateID int64  `json:"template_id"`
+	Category   string `json:"category"`
 }
 
 type Download struct {
@@ -65,6 +80,7 @@ type Template struct {
 	Color        string    `json:"color"`
 	UserID       int64     `json:"user_id"`
 	NumOfPkgs    int64     `json:"num_of_packages"`
+	CategID      int64     `json:"categ_id"`
 }
 
 // Folder represents the folder data in the database
@@ -75,7 +91,6 @@ type Folder struct {
 	//	FolderId   int64  `json:"folder_id"`
 }
 
-// Folder represents the folder data in the database
 type CardTemplate struct {
 	ID         int64     `json:"id"`
 	ImageID    int64     `json:"image_id"`
@@ -89,4 +104,9 @@ type Library struct {
 	Name      string `db:"name"`
 	ImageLink string `db:"imageLink"`
 	SoundLink string `db:"soundLink"`
+}
+
+type Category struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
 }
