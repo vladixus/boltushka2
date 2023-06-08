@@ -343,6 +343,7 @@ func Login(c *gin.Context) {
 		"access_token": accessTokenString,
 		"message":      "User logged in",
 	})
+	fmt.Println(id)
 }
 
 func Refresh(c *gin.Context) {
@@ -532,15 +533,15 @@ func PostFolders(c *gin.Context) {
 }
 
 func Logout(c *gin.Context) {
-	userID, err := c.MustGet("id").(int64)
-	if err != false {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Неверный refresh token"})
-		return
-	}
+	//	userID, err := c.MustGet("id").(int64)
+	//	if err != false {
+	//		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Неверный refresh token"})
+	//		return
+	//	}
 	// После получения ID пользователя, можно удалить токен обновления из базы данных или установить его срок действия на прошедшую дату
 
 	// Удаляем токен обновления из базы данных
-	err2 := database.DeleteRefreshToken(c, userID)
+	err2 := database.DeleteRefreshToken(c)
 	if err2 != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Ошибка удаления токена обновления"})
 		return
