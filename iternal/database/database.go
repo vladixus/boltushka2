@@ -71,7 +71,7 @@ func init() {
 		log.Fatalf("Error creating table users, %s", err)
 	}
 	//Сессия
-	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS sessions (
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS sessions ( 
 	id SERIAL PRIMARY KEY,
 	enter TIMESTAMP,
 	exit TIMESTAMP,
@@ -149,7 +149,8 @@ func init() {
 	image_id INT REFERENCES images(id),
 	template_id INT NOT NULL REFERENCES templates(id),
     folder_id INT REFERENCES folders(id),
-    dateadd TIMESTAMP NOT NULL
+    dateadd TIMESTAMP NOT NULL,
+    kolvoclick INT
 )`)
 	if err != nil {
 		log.Fatalf("Error creating table folders, %s", err)
@@ -352,6 +353,32 @@ func Logg(user model.User, c *gin.Context) (id int, fioUser string, err error) {
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Неверная почта или пароль хэш"})
 		return
 	}
+
+	// Проверить наличие ID в базе данных
+	var count int
+	err = db.QueryRow("SELECT COUNT(*) FROM sessions WHERE user_id = $1", id).Scan(&count)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Ошибка при проверке наличия ID в базе данных"})
+		return
+	}
+
+	if count > 0 {
+		// ID уже существует, выполнить обновление атрибута enter
+		_, err = db.Exec("UPDATE sessions SET enter = $1 WHERE user_id = $2", time.Now(), id)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Ошибка обновления атрибута enter"})
+			return
+		}
+	} else {
+		// ID отсутствует, выполнить вставку новой записи
+		_, err = db.Exec("INSERT INTO sessions (enter, user_id) VALUES ($1, $2)", time.Now(), id)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Ошибка вставки времени сессии"})
+			return
+		}
+	}
+
+	// Продолжить выполнение кода в случае успешной вставки или обновления
 
 	return id, fioUser, nil
 }
@@ -705,11 +732,17 @@ func GenerateToken() (string, error) {
 	}
 	return base64.URLEncoding.EncodeToString(b), nil
 }
-func DeleteRefreshToken(c *gin.Context, userID int64) (err error) {
+func DeleteRefreshToken(c *gin.Context) (err error) {
 	// Ваш код для удаления токена обновления из базы данных
-	_, err = db.Exec("DELETE FROM refresh_tokens WHERE user_id = $1", userID)
+	_, err = db.Exec("DELETE FROM refresh_tokens WHERE user_id = $1", c.MustGet("id").(int64))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Ошибка скана таблицы"})
+		return
+	}
+
+	_, err = db.Exec("UPDATE sessions SET exit = $1 WHERE user_id = $2", time.Now(), c.MustGet("id").(int64))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Ошибка обновления атрибута enter"})
 		return
 	}
 
