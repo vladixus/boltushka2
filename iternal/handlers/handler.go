@@ -552,3 +552,31 @@ func Logout(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Успешный выход из аккаунта"})
 }
+
+func UploadProfilePhoto(c *gin.Context) {
+	// Взять фото из запроса
+	file, err := c.FormFile("photo")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get profile photo from the request"})
+		return
+	}
+
+	// Сохраняем фото на сервак
+	photoPath := "Storage/profile-photos/" + file.Filename
+	err = c.SaveUploadedFile(file, photoPath)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save the profile photo on the server"})
+		return
+	}
+
+	// Get the user ID from the request (assuming it's stored in the context)
+	userID := c.MustGet("id").(int64)
+	photoLink := "/profile-photos/" + file.Filename
+
+	err = database.SaveProfileLinkPhoto(c, userID, photoLink)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "Фото загружено"})
+}
