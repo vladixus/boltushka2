@@ -41,6 +41,8 @@ func main() {
 	auth.PUT("/profile/update", handlers.Update) //ready
 	//получить инфу профиля
 	auth.GET("/profile", handlers.Profile) //ready
+	//загрузка фото профиля
+	auth.POST("/upload-profile-photo", handlers.UploadProfilePhoto) //ready
 	//вход
 	r.POST("/login", handlers.Login) //ready
 	//обновить куки токен юзера
