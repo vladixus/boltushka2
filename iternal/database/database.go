@@ -58,6 +58,7 @@ func init() {
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS users (
 	id SERIAL PRIMARY KEY,
 	fioUser TEXT NOT NULL,
+	photo_link TEXT,
 	age INT NOT NULL,
 	gender TEXT NOT NULL,
 	email TEXT NOT NULL UNIQUE,
@@ -313,7 +314,7 @@ func UpdUser(c *gin.Context, user model.User, id int64) (err error) {
 func Profile(c *gin.Context) (user model.Profile, err error) {
 	// Check if user exists in database
 
-	err = db.QueryRow("SELECT email, fiouser, age, gender FROM users WHERE id = $1", c.MustGet("id").(int64)).Scan(&user.Email, &user.FioUser, &user.Age, &user.Gender)
+	err = db.QueryRow("SELECT email, fiouser, age, gender, photo_link FROM users WHERE id = $1", c.MustGet("id").(int64)).Scan(&user.Email, &user.FioUser, &user.Age, &user.Gender, &user.PhotoLink)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "Пользователь не найден"})
@@ -746,5 +747,14 @@ func DeleteRefreshToken(c *gin.Context) (err error) {
 		return
 	}
 
+	return nil
+}
+
+func SaveProfileLinkPhoto(c *gin.Context, userID int64, photoLink string) (err error) {
+	_, err = db.Exec("UPDATE users SET photo_link = $1 WHERE id = $2", photoLink, userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to update the photo link in the database"})
+		return
+	}
 	return nil
 }
