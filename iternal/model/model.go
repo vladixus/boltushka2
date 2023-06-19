@@ -20,10 +20,11 @@ type Session struct {
 }
 
 type Profile struct {
-	FioUser string `json:"fio_user"`
-	Age     int    `json:"age"`
-	Gender  string `json:"gender"`
-	Email   string `json:"email"`
+	FioUser   string `json:"fio_user"`
+	Age       int    `json:"age"`
+	Gender    string `json:"gender"`
+	Email     string `json:"email"`
+	PhotoLink string `json:"photo_link"`
 }
 
 type Data struct {
